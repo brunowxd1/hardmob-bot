@@ -30,7 +30,8 @@
     "no-await-in-loop": "off",
     "no-constant-condition": "off",
     "no-console": "off",
-    "no-plusplus": "off"
+    "no-plusplus": "off",
+    "import/no-unresolved": "off"
   },
   "settings": {
     "import/resolver": {

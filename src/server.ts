@@ -1,44 +1,36 @@
 import puppeteer from 'puppeteer';
-import TelegramBot from 'node-telegram-bot-api';
+import { config } from 'dotenv';
+import sendMessageToTelegram from './TeleGramBot';
 
-const token = '1323258371:AAEQkMbQlVq6oha0sr8sEeUB3Za7zmjpFuI';
-const bot = new TelegramBot(token, { polling: true });
+config();
 
-const sendMessageToTelegram = async (message: string, href: string) => {
-  const formattedMessage = `
-  !!!NOVA PROMOÇÃO!!!
-  ${message}
+const observePage = () => {
+  const getLastPost = document.getElementsByClassName(
+    'title',
+  )[2] as HTMLLinkElement;
 
-  Acesse o link: ${href}
-  `;
+  if (getLastPost) {
+    const { href, innerText, id } = getLastPost;
 
-  bot.sendMessage(-479619799, formattedMessage);
+    const parsedId = parseInt(id.slice(13, 19), 10);
+
+    return { href, innerText, parsedId };
+  }
+
+  return undefined;
+};
+
+const delay = async (time: number) => {
+  return new Promise(r => setTimeout(r, time));
 };
 
 (async () => {
-  const observePage = () => {
-    const link = document.getElementsByClassName('title')[2];
-
-    if (link) {
-      const { href, innerText, id } = link;
-
-      const parsedId = parseInt(id.slice(13, 19), 10);
-      console.log(parsedId);
-
-      return { href, innerText, parsedId };
-    }
-  };
-
-  const delay = async (time: number) => {
-    return new Promise(r => setTimeout(r, time));
-  };
-
   try {
-    const baseURL = 'https://www.hardmob.com.br/forums/407-Promocoes';
+    const baseURL = process.env.BASE_URL;
 
     const browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
-    await page.goto(baseURL);
+    await page.goto(baseURL as string);
 
     let newest = 0;
     let count = 0;
@@ -52,7 +44,7 @@ const sendMessageToTelegram = async (message: string, href: string) => {
         sendMessageToTelegram(target.innerText, target.href);
       }
 
-      await delay(5000);
+      await delay(30000);
       await page.reload();
       console.log(`Reloaded ${++count} times`);
     }
